@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto load multi video</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+
+    <style>
+        .multi-video-item video {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 6px;
+        }
+        .multi-video-item {
+            margin-bottom: 1rem;
+        }
+        .multi-video-item h6 {
+            font-size: 0.85rem;
+            color: var(--rp-text-muted);
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="code">
+    <div class="multi-video-item">
+        <h6>This is a dash.js player that should autostart</h6>
+        <video autoplay controls>
+            <source src="https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd"
+                    type="application/dash+xml"/>
+        </video>
+    </div>
+    <div class="multi-video-item">
+        <h6>This is a dash.js player that should not autostart</h6>
+        <video poster="http://mediapm.edgesuite.net/will/dash/temp/poster.png" controls="true">
+            <source
+                src="https://dash.akamaized.net/digitalprimates/fraunhofer/480p_video/heaac_2_0_with_video/Sintel/sintel_480p_heaac2_0.mpd"
+                type="application/dash+xml"/>
+        </video>
+    </div>
+    <div class="multi-video-item">
+        <h6>This is a dash.js player where the manifest is defined via the src attribute of the video element.</h6>
+        <video data-dashjs-player autoplay
+               src="https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd" controls="true">
+        </video>
+    </div>
+</div>
+
+<script type="module">
+    import { initSamplePage } from '../lib/sample-template.js';
+
+    initSamplePage({
+        title: 'Auto load multi video',
+        description: 'This example shows how to auto-embed multiple instances of dash.js players in a page. To make it more difficult, one of the available video elements specifies a non-DASH source.',
+        category: 'Getting Started',
+        codeExpanded: true,
+        layout: 'custom',
+        showCodeOutput: true
+    });
+</script>
+</body>
+</html>

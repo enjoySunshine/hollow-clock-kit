@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>License server via MPD</title>
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+</head>
+<body>
+
+<script class="code">
+    async function init(video, wrapper) {
+        var protData = {
+            "com.widevine.alpha": {
+                "httpRequestHeaders": {
+                    "X-AxDRM-Message": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJzaW9uIjoxLCJjb21fa2V5X2lkIjoiYjMzNjRlYjUtNTFmNi00YWUzLThjOTgtMzNjZWQ1ZTMxYzc4IiwibWVzc2FnZSI6eyJ0eXBlIjoiZW50aXRsZW1lbnRfbWVzc2FnZSIsImZpcnN0X3BsYXlfZXhwaXJhdGlvbiI6NjAsInBsYXlyZWFkeSI6eyJyZWFsX3RpbWVfZXhwaXJhdGlvbiI6dHJ1ZX0sImtleXMiOlt7ImlkIjoiOWViNDA1MGQtZTQ0Yi00ODAyLTkzMmUtMjdkNzUwODNlMjY2IiwiZW5jcnlwdGVkX2tleSI6ImxLM09qSExZVzI0Y3Iya3RSNzRmbnc9PSJ9XX19.FAbIiPxX8BHi9RwfzD7Yn-wugU19ghrkBFKsaCPrZmU"
+                },
+                priority: 0
+            },
+            "com.microsoft.playready": {
+                "httpRequestHeaders": {
+                    "X-AxDRM-Message": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJzaW9uIjoxLCJjb21fa2V5X2lkIjoiYjMzNjRlYjUtNTFmNi00YWUzLThjOTgtMzNjZWQ1ZTMxYzc4IiwibWVzc2FnZSI6eyJ0eXBlIjoiZW50aXRsZW1lbnRfbWVzc2FnZSIsImZpcnN0X3BsYXlfZXhwaXJhdGlvbiI6NjAsInBsYXlyZWFkeSI6eyJyZWFsX3RpbWVfZXhwaXJhdGlvbiI6dHJ1ZX0sImtleXMiOlt7ImlkIjoiOWViNDA1MGQtZTQ0Yi00ODAyLTkzMmUtMjdkNzUwODNlMjY2IiwiZW5jcnlwdGVkX2tleSI6ImxLM09qSExZVzI0Y3Iya3RSNzRmbnc9PSJ9XX19.FAbIiPxX8BHi9RwfzD7Yn-wugU19ghrkBFKsaCPrZmU"
+                },
+                priority: 0
+            }
+        };
+        var player,
+            url = "mpds/laurl.mpd";
+
+        player = dashjs.MediaPlayer().create();
+        player.updateSettings({
+            debug: {
+                logLevel: 5
+            }
+        })
+        player.initialize(video, url, true);
+        player.setProtectionData(protData);
+        await createControlBar(player, video, wrapper);
+    }
+</script>
+
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+    initSamplePage({
+        title: 'License server via MPD',
+        description: 'This example shows how to specify the license server URL as part of the MPD using dashif:laurl. For a detailed explanation on DRM playback in dash.js checkout the <a href="https://dashif.org/dash.js/pages/usage/drm.html" target="_blank">documentation</a>.',
+        category: 'DRM',
+        httpWarning: true,
+        codeExpanded: true,
+        onInit: (video, container, wrapper) => init(video, wrapper)
+    });
+</script>
+</body>
+</html>

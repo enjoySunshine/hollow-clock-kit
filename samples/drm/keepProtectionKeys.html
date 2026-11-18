@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keep MediaKeySession</title>
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+</head>
+<body>
+
+<script class="code">
+    async function init() {
+        var video = document.querySelector('video');
+        var wrapper = document.getElementById('video-wrapper');
+
+        var protData = {
+            "com.widevine.alpha": {
+                "serverURL": "https://drm-widevine-licensing.axtest.net/AcquireLicense",
+                "httpRequestHeaders": {
+                    "X-AxDRM-Message": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICJ2ZXJzaW9uIjogMSwKICAiY29tX2tleV9pZCI6ICI2OWU1NDA4OC1lOWUwLTQ1MzAtOGMxYS0xZWI2ZGNkMGQxNGUiLAogICJtZXNzYWdlIjogewogICAgInR5cGUiOiAiZW50aXRsZW1lbnRfbWVzc2FnZSIsCiAgICAidmVyc2lvbiI6IDIsCiAgICAibGljZW5zZSI6IHsKICAgICAgImFsbG93X3BlcnNpc3RlbmNlIjogdHJ1ZQogICAgfSwKICAgICJjb250ZW50X2tleXNfc291cmNlIjogewogICAgICAiaW5saW5lIjogWwogICAgICAgIHsKICAgICAgICAgICJpZCI6ICIzMDJmODBkZC00MTFlLTQ4ODYtYmNhNS1iYjFmODAxOGEwMjQiLAogICAgICAgICAgImVuY3J5cHRlZF9rZXkiOiAicm9LQWcwdDdKaTFpNDNmd3YremZ0UT09IiwKICAgICAgICAgICJ1c2FnZV9wb2xpY3kiOiAiUG9saWN5IEEiCiAgICAgICAgfQogICAgICBdCiAgICB9LAogICAgImNvbnRlbnRfa2V5X3VzYWdlX3BvbGljaWVzIjogWwogICAgICB7CiAgICAgICAgIm5hbWUiOiAiUG9saWN5IEEiLAogICAgICAgICJwbGF5cmVhZHkiOiB7CiAgICAgICAgICAibWluX2RldmljZV9zZWN1cml0eV9sZXZlbCI6IDE1MCwKICAgICAgICAgICJwbGF5X2VuYWJsZXJzIjogWwogICAgICAgICAgICAiNzg2NjI3RDgtQzJBNi00NEJFLThGODgtMDhBRTI1NUIwMUE3IgogICAgICAgICAgXQogICAgICAgIH0KICAgICAgfQogICAgXQogIH0KfQ._NfhLVY7S6k8TJDWPeMPhUawhympnrk6WAZHOVjER6M"
+                },
+                "httpTimeout": 5000,
+                priority: 0
+            },
+            "com.microsoft.playready": {
+                "serverURL": "https://drm-playready-licensing.axtest.net/AcquireLicense",
+                "httpRequestHeaders": {
+                    "X-AxDRM-Message": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJzaW9uIjoxLCJjb21fa2V5X2lkIjoiYjMzNjRlYjUtNTFmNi00YWUzLThjOTgtMzNjZWQ1ZTMxYzc4IiwibWVzc2FnZSI6eyJ0eXBlIjoiZW50aXRsZW1lbnRfbWVzc2FnZSIsImtleXMiOlt7ImlkIjoiOWViNDA1MGQtZTQ0Yi00ODAyLTkzMmUtMjdkNzUwODNlMjY2IiwiZW5jcnlwdGVkX2tleSI6ImxLM09qSExZVzI0Y3Iya3RSNzRmbnc9PSJ9XX19.4lWwW46k-oWcah8oN18LPj5OLS5ZU-_AQv7fe0JhNjA"
+                },
+                "httpTimeout": 5000,
+                priority: 1
+            }
+        };
+        var player,
+            url = "https://media.axprod.net/TestVectors/Cmaf/protected_1080p_h264_cbcs/manifest.mpd";
+        var attachSourceButton = document.getElementById('attach_button');
+
+        player = dashjs.MediaPlayer().create();
+        player.updateSettings({
+            streaming: {
+                debug: {
+                    logLevel: 5
+                },
+                protection: {
+                    keepProtectionMediaKeys: true
+                }
+            }
+        })
+        player.initialize(video, null, true);
+        player.setProtectionData(protData);
+
+        attachSourceButton.onclick = function () {
+            player.attachSource(url);
+        }
+        await createControlBar(player, video, wrapper);
+    }
+</script>
+
+<div class="sample-content-custom">
+    <div class="row mt-2">
+        <div class="col-md-12">
+            <button type="button" class="btn btn-primary" id="attach_button">(Re)attach source</button>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <div class="sample-video-wrapper" id="video-wrapper">
+                <video></video>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+    initSamplePage({
+        title: 'Keep MediaKeySession',
+        description: 'Shows how to use the keepProtectionKeys setting to persist DRM sessions across source changes. For a detailed explanation on DRM playback in dash.js see the <a href="https://dashif.org/dash.js/pages/usage/drm.html" target="_blank">documentation</a>.',
+        category: 'DRM',
+        httpWarning: true,
+        layout: 'custom',
+        onInit: () => init()
+    });
+</script>
+</body>
+</html>

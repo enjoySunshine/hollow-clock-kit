@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load with URL parameters</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+</head>
+<body>
+
+<script class="code">
+    function getUrlVars() {
+        var vars = {};
+        window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (m, key, value) {
+            vars[key] = value;
+        });
+        return vars;
+    }
+
+    async function init(video, wrapper) {
+        var player;
+        var urlParameter = getUrlVars();
+        var item = {
+            url: 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd',
+            autoplay: true
+        }
+
+        if (urlParameter) {
+            if (urlParameter.hasOwnProperty('url')) {
+                item.url = urlParameter.url;
+            }
+            if (urlParameter.hasOwnProperty('autoplay')) {
+                item.autoplay = (urlParameter.autoplay === 'true');
+            }
+        }
+
+        player = dashjs.MediaPlayer().create();
+        player.initialize(video, item.url, item.autoplay);
+        await createControlBar(player, video, wrapper);
+    }
+</script>
+
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+
+    initSamplePage({
+        title: 'Load with URL parameters',
+        description: 'A demo page that uses URL query parameters to configure playback. Supported parameters: <strong>url</strong> (MPD URL, default: bbb_30fps) and <strong>autoplay</strong> ("true" or "false", default: "true").',
+        category: 'Getting Started',
+        codeExpanded: true,
+        onInit: (video, container, wrapper) => init(video, wrapper)
+    });
+</script>
+</body>
+</html>

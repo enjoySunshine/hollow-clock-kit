@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom capabilities filters</title>
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+</head>
+<body>
+<script class="code">
+    async function init(video, wrapper) {
+
+        var player,
+            url = "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd";
+
+        var filterCapabilities = function (representation) {
+            console.log('Representation', representation);
+            /* Filter representations based on certain attributes like the resolution. Return false to filter specific representation */
+            if (representation.mimeType === "video/mp4") {
+                return representation.height <= 720;
+            }
+            return true;
+        }
+
+        player = dashjs.MediaPlayer().create();
+
+        player.registerCustomCapabilitiesFilter(filterCapabilities) ;
+
+        player.initialize(video, url, true);
+        await createControlBar(player, video, wrapper);
+    }
+</script>
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+    initSamplePage({
+        title: 'Custom capabilities filters',
+        description: 'This sample shows how to filter representations by defining a custom capabilities filter function.',
+        category: 'Tracks and Capabilities',
+        codeExpanded: true,
+        onInit: (video, container, wrapper) => init(video, wrapper)
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual load with start time</title>
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+</head>
+<body>
+<script class="code">
+    async function init(video, wrapper) {
+        var player,
+            url = "https://livesim2.dashif.org/livesim2/testpic_2s/Manifest.mpd";
+
+        player = dashjs.MediaPlayer().create();
+        player.initialize(); /* initialize the MediaPlayer instance */
+
+        player.updateSettings({
+            debug: {
+                logLevel: 4
+            }
+        });
+        const starttime = new Date().getTime() / 1000 - 60;
+        player.attachView(video); /* tell the player which videoElement it should use */
+        player.attachSource(url, `posix:${starttime}`); /* start from UTC time */
+        /* player.attachSource(url, starttime);  start relative to AST */
+        await createControlBar(player, video, wrapper);
+    }
+</script>
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+    initSamplePage({
+        title: 'Manual load with start time',
+        description: 'A sample showing how to initialize playback at a specific start time. <ul><li>For VoD content the start time is relative to the start time of the first period.</li><li>For live content<ul><li>If the parameter starts from prefix posix: it signifies the absolute time range defined in seconds of Coordinated Universal Time (ITU-R TF.460-6).</li><li>If no posix prefix is used the starttime is relative to MPD@availabilityStartTime</li></ul></li></ul>In this example playback starts 60 seconds from the current wall clock time.',
+        category: 'Loading and Startup',
+        codeExpanded: true,
+        onInit: (video, container, wrapper) => init(video, wrapper)
+    });
+</script>
+</body>
+</html>

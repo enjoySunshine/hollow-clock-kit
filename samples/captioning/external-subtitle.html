@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>External WebVTT subtitles</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+</head>
+<body>
+
+<script class="code">
+    async function init(video, container, wrapper) {
+        var externalSubtitle = new dashjs.ExternalSubtitle({
+            id: 'external_1',
+            url: 'https://reference.dashif.org/other/content/webvtt/external-subtitle.vtt',
+            mimeType: 'text/vtt',
+            language: 'en',
+            bandwidth: 256
+        });
+        var externalSubtitleTwo = new dashjs.ExternalSubtitle({
+            id: 'external_2',
+            url: 'https://reference.dashif.org/other/content/webvtt/external-subtitle-2.vtt',
+            mimeType: 'text/vtt',
+            language: 'de',
+            bandwidth: 256
+        });
+
+        var player = dashjs.MediaPlayer().create();
+        player.initialize(video, null, true);
+
+        await createControlBar(player, video, wrapper);
+
+        player.addExternalSubtitle(externalSubtitle);
+        player.addExternalSubtitle(externalSubtitleTwo);
+        player.attachSource('https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd');
+    }
+</script>
+
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+
+    initSamplePage({
+        title: 'External WebVTT subtitles',
+        description: 'This example shows how to use the dash.js API to add an external WebVTT file that is not part of the DASH manifest.',
+        category: 'Subtitles and Captions',
+        codeExpanded: true,
+        videoAttributes: { preload: 'auto', autoplay: '' },
+        onInit: (video, container, wrapper) => init(video, container, wrapper)
+    });
+</script>
+</body>
+</html>

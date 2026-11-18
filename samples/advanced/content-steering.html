@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content steering</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+
+    <style>
+        figure.cdn-selection {
+            margin: 0 0 0 30px;
+            display: inline-block;
+        }
+
+        img.cdn-selection {
+            width: 70px;
+        }
+
+        img.steering-architecture {
+            max-width: 720px;
+        }
+
+        #cdn-selection-container, #location-selection-container {
+            margin: 30px 0 0 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sample-content-custom">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="sample-metrics">
+                <div class="sample-metrics-header">Architecture</div>
+                <div class="sample-metrics-body">
+                    <img src="../common/img/steering.png" class="img-fluid steering-architecture" alt="Steering architecture illustration">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="input-group mb-3">
+                <input type="text" id="manifest" class="form-control" placeholder="MPD URL"
+                       value='https://livesim2.dashif.org/livesim2/steer_alpha,beta,gamma;ttl=10;mode=rotate;qbs=1;default=beta/testpic_2s/Manifest.mpd?sessionId=dashjs'>
+                <button type="button" id="load-button" class="btn btn-success">Load MPD
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-6">
+            <div class="sample-video-wrapper">
+                <video muted></video>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="sample-metrics h-100">
+                <div class="sample-metrics-header">CDN &amp; Location Selection</div>
+                <div class="sample-metrics-body">
+                    <div class="metric-section-title">CDN Selection</div>
+                    <div id="cdn-selection-container"></div>
+                    <div class="metric-section-title">Location Selection</div>
+                    <div id="location-selection-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-6">
+            <div class="sample-metrics h-100">
+                <div class="sample-metrics-header">Fragment Requests</div>
+                <div class="sample-metrics-body">
+                    <div class="table-responsive">
+                        <table class="sample-metric-table">
+                            <thead>
+                            <tr>
+                                <th scope="col">Type</th>
+                                <th scope="col">Service Location</th>
+                                <th scope="col">Request URL</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>Audio</td>
+                                <td id="audio-service-location"></td>
+                                <td id="audio-request-url"></td>
+                            </tr>
+                            <tr>
+                                <td>Video</td>
+                                <td id="video-service-location"></td>
+                                <td id="video-request-url"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="sample-metrics h-100">
+                <div class="sample-metrics-header">Manifest Requests</div>
+                <div class="sample-metrics-body">
+                    <div class="table-responsive">
+                        <table class="sample-metric-table">
+                            <thead>
+                            <tr>
+                                <th scope="col">Service Location</th>
+                                <th scope="col">Request URL</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td id="manifest-service-location"></td>
+                                <td id="manifest-request-url"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12 mt-2">
+            <div class="sample-metrics">
+                <div class="sample-metrics-header">Steering Data</div>
+                <div class="sample-metrics-body">
+                    <div class="table-responsive">
+                        <table class="sample-metric-table">
+                            <thead>
+                            <tr>
+                                <th scope="col">Attribute</th>
+                                <th scope="col">Value</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>Timestamp</td>
+                                <td id="steering-request-timestamp"></td>
+                            </tr>
+                            <tr>
+                                <td>Request URL</td>
+                                <td>
+                                    <span id="steering-request-url"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Response - Version</td>
+                                <td><span id="steering-version"></span></td>
+                            </tr>
+                            <tr>
+                                <td>Response - Reload URI</td>
+                                <td><span id="steering-reload-uri"></span></td>
+                            </tr>
+                            <tr>
+                                <td>Response - Pathway Priority</td>
+                                <td><span id="steering-pathway-priority"></span></td>
+                            </tr>
+                            <tr>
+                                <td>Response - Pathway Clones</td>
+                                <td>
+                                    <pre class="mb-0"><span id="steering-pathway-cloning"></span></pre>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Response - TTL</td>
+                                <td><span id="steering-ttl"></span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script class="code">
+    let player;
+    let mpd = '';
+    let currentSelectedServiceLocation = {}
+    let cdnSelectionImgDomElements = {};
+    let locationSelectionImgDomElements = {};
+
+    async function init(video, wrapper) {
+        player = dashjs.MediaPlayer().create();
+        document.getElementById('load-button').addEventListener('click', function () {
+            _load();
+        })
+        player.initialize(video, null, true);
+        await createControlBar(player, video, wrapper);
+
+        player.on(dashjs.MediaPlayer.events.FRAGMENT_LOADING_STARTED, _onFragmentLoadingStarted, null);
+        player.on(dashjs.MediaPlayer.events.MANIFEST_LOADING_STARTED, _onManifestLoadingStarted, null);
+        player.on(dashjs.MediaPlayer.events.CONTENT_STEERING_REQUEST_COMPLETED, _onContentSteeringRequestCompleted, null);
+        player.on(dashjs.MediaPlayer.events.BASE_URLS_UPDATED, _onBaseUrlsUpdated, null);
+        player.on(dashjs.MediaPlayer.events.MANIFEST_LOADED, _onManifestLoaded, null);
+    }
+
+    function _load() {
+        mpd = document.getElementById('manifest').value;
+        player.attachSource(mpd);
+    }
+
+    function _onFragmentLoadingStarted(e) {
+        try {
+            if (e && e.mediaType && (e.mediaType === 'video' || e.mediaType === 'audio') && e.request) {
+                if (e.request.serviceLocation) {
+                    const element = document.getElementById(`${e.mediaType}-service-location`);
+                    element.innerText = e.request.serviceLocation;
+                    if (!currentSelectedServiceLocation[e.mediaType] || currentSelectedServiceLocation[e.mediaType] !== e.request.serviceLocation) {
+                        currentSelectedServiceLocation[e.mediaType] = e.request.serviceLocation;
+                        _serviceLocationChanged(currentSelectedServiceLocation, cdnSelectionImgDomElements);
+                    }
+                }
+                if (e.request.url) {
+                    const element = document.getElementById(`${e.mediaType}-request-url`);
+                    element.innerText = e.request.url;
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function _serviceLocationChanged(selectedServiceLocation, domElements) {
+        const activeServiceLocations = Object.keys(selectedServiceLocation).reduce((acc, key) => {
+            acc[selectedServiceLocation[key]] = true;
+            return acc;
+        }, {})
+
+        Object.keys(domElements).forEach((key) => {
+            const elem = domElements[key];
+
+            if (activeServiceLocations[key]) {
+                elem.setAttribute('src', '../common/img/server-active.svg')
+            } else {
+                elem.setAttribute('src', '../common/img/server.svg');
+            }
+
+        })
+    }
+
+    function _onBaseUrlsUpdated(e) {
+        if (!e || !e.baseUrls || e.baseUrls.length === 0) {
+            return;
+        }
+        const divContainer = document.getElementById('cdn-selection-container');
+        /* Only create the once we dont have yet */
+        e.baseUrls.forEach((baseUrl) => {
+            if (baseUrl.serviceLocation) {
+                const existingElement = document.getElementById(`cdn-selection-${baseUrl.serviceLocation}`);
+                if (!existingElement) {
+                    const spanContainer = document.createElement('span');
+                    spanContainer.setAttribute('id', `cdn-selection-${baseUrl.serviceLocation}`);
+                    const figure = document.createElement('figure');
+                    figure.setAttribute('class', 'cdn-selection');
+                    const img = document.createElement('img');
+                    img.setAttribute('src', '../common/img/server.svg');
+                    img.setAttribute('class', 'figure-img img-fluid cdn-selection');
+                    const figCaption = document.createElement('figcaption');
+                    figCaption.setAttribute('class', 'figure-caption');
+                    const label = document.createTextNode(`${baseUrl.serviceLocation}`);
+                    figCaption.appendChild(label);
+                    figure.appendChild(img)
+                    figure.appendChild(figCaption);
+                    spanContainer.appendChild(figure);
+                    divContainer.appendChild(spanContainer);
+                    cdnSelectionImgDomElements[baseUrl.serviceLocation] = img;
+                }
+            }
+        })
+    }
+
+    function _onManifestLoaded() {
+        const locations = player.getAvailableLocations();
+        if (!locations || locations.length === 0) {
+            return;
+        }
+        const divContainer = document.getElementById('location-selection-container');
+        /* Only create the once we dont have yet */
+        locations.forEach((location) => {
+            if (location.serviceLocation) {
+                const existingElement = document.getElementById(`cdn-selection-${location.serviceLocation}`);
+                if (!existingElement) {
+                    const spanContainer = document.createElement('span');
+                    spanContainer.setAttribute('id', `cdn-selection-${location.serviceLocation}`);
+                    const figure = document.createElement('figure');
+                    figure.setAttribute('class', 'cdn-selection');
+                    const img = document.createElement('img');
+                    img.setAttribute('src', '../common/img/server.svg');
+                    img.setAttribute('class', 'figure-img img-fluid cdn-selection');
+                    const figCaption = document.createElement('figcaption');
+                    figCaption.setAttribute('class', 'figure-caption');
+                    const label = document.createTextNode(`${location.serviceLocation}`);
+                    figCaption.appendChild(label);
+                    figure.appendChild(img)
+                    figure.appendChild(figCaption);
+                    spanContainer.appendChild(figure);
+                    divContainer.appendChild(spanContainer);
+                    locationSelectionImgDomElements[location.serviceLocation] = img;
+                }
+            }
+        })
+    }
+
+    function _onManifestLoadingStarted(e) {
+        try {
+            if (e.request.url) {
+                const element = document.getElementById(`manifest-request-url`);
+                element.innerText = e.request.url;
+            }
+            const slElement = document.getElementById(`manifest-service-location`);
+            if (e.request.serviceLocation) {
+                slElement.innerText = e.request.serviceLocation;
+                _serviceLocationChanged({ manifest: e.request.serviceLocation }, locationSelectionImgDomElements)
+            } else {
+                slElement.innerText = '';
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function _onContentSteeringRequestCompleted(e) {
+        try {
+            if (e) {
+                document.getElementById(`steering-request-timestamp`).innerText = new Date().toISOString();
+                if (e.url) {
+                    document.getElementById(`steering-request-url`).innerText = decodeURIComponent(e.url);
+                }
+                if (e.currentSteeringResponseData) {
+                    document.getElementById(`steering-version`).innerText = e.currentSteeringResponseData.version;
+                    document.getElementById(`steering-ttl`).innerText = e.currentSteeringResponseData.ttl;
+                    document.getElementById(`steering-reload-uri`).innerText = e.currentSteeringResponseData.reloadUri;
+                    document.getElementById(`steering-pathway-priority`).innerText = e.currentSteeringResponseData.pathwayPriority.toString();
+                    document.getElementById(`steering-pathway-cloning`).innerText = JSON.stringify(e.currentSteeringResponseData.pathwayClones, null, '\t');
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+</script>
+<script type="module">
+    import {initSamplePage, createControlBar} from '../lib/sample-template.js';
+
+    initSamplePage({
+        title: 'Content steering',
+        description: 'Content distributors often use multiple Content Delivery Networks (CDNs) to distribute their content. <strong>Content steering</strong> describes a deterministic capability for a content distributor to switch the content source that a player uses either at start-up or midstream, by means of a remote steering service. Note that you need to provide a manifest with a valid content steering server.',
+        category: 'Network',
+        layout: 'custom',
+        onInit: (video, container, wrapper) => init(video, wrapper)
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebVTT custom rendering</title>
+
+    <script src="../../contrib/videojs-vtt.js/vtt.min.js"></script>
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+</head>
+<body>
+
+<script class="code">
+    async function init() {
+        var video = document.querySelector('video');
+        var wrapper = document.getElementById('video-wrapper');
+        var url = 'https://dash.akamaized.net/akamai/test/caption_test/ElephantsDream/elephants_dream_480p_heaac5_1_https.mpd';
+
+        var player = dashjs.MediaPlayer().create();
+        player.updateSettings({
+            debug: {
+                logLevel: 5
+            },
+            streaming: {
+                text: {
+                    webvtt: {
+                        customRenderingEnabled: true
+                    }
+                }
+            }
+        })
+        player.initialize(video, url, true);
+        player.attachVttRenderingDiv(wrapper.querySelector('#vtt-rendering-div'));
+
+        await createControlBar(player, video, wrapper);
+    }
+</script>
+
+<div class="sample-content-custom">
+    <div class="sample-content">
+        <div class="sample-content-main">
+            <div class="sample-video-wrapper" id="video-wrapper">
+                <video preload="auto" muted></video>
+                <div id="vtt-rendering-div"
+                     style="position:absolute; bottom:0; left:0; width:100%; height:30%; pointer-events:none; z-index:1;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+
+    initSamplePage({
+        title: 'WebVTT custom rendering',
+        description: 'Shows how content with VTT captions can be played back by the dash.js player using the external vtt.js library. This enables VTT support on devices that do not provide native VTT support. The first captions appear at the 15s mark.<br>Note: This sample will only work when using http as the subtitles are not hosted via https.',
+        category: 'Subtitles and Captions',
+        codeExpanded: true,
+        layout: 'custom',
+        onInit: () => init()
+    });
+</script>
+</body>
+</html>

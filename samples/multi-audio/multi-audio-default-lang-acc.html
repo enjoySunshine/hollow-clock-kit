@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initial audio track with language and accessibility</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+
+    <style>
+        #mediaSettings, #selectedTrack {
+            height: 400px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<script class="code">
+    async function init(video, container, wrapper) {
+        var url = 'https://ott.dolby.com/webapi/testasset_dashjs/multiAudio.mpd';
+
+        var player = dashjs.MediaPlayer().create();
+        player.updateSettings({'debug': {'logLevel': dashjs.Debug.LOG_LEVEL_INFO}});
+        player.initialize(video, url, true);
+        player.setInitialMediaSettingsFor('audio', {
+            lang: 'es',
+            role: 'alternate',
+            audioChannelConfiguration: '6',
+            test: '2',
+            viewpoint: '1',
+            accessibility: {schemeIdUri:'urn:mpeg:dash:role:2011', value:'description'}
+        })
+
+        await createControlBar(player, video, wrapper);
+
+        var elMediaSetting = document.getElementById('mediaSettings');
+        if(elMediaSetting) {
+            elMediaSetting.innerHTML = JSON.stringify(player.getInitialMediaSettingsFor('audio'), null, 4);
+            elMediaSetting.scrollTop = elMediaSetting.scrollHeight;
+        }
+
+        player.on(dashjs.MediaPlayer.events['STREAM_INITIALIZED'], function() {
+            var elTrack = document.getElementById('selectedTrack');
+            if(elTrack) {
+                elTrack.innerHTML = JSON.stringify(player.getCurrentTrackFor('audio'), null, 4);
+            };
+        });
+    }
+</script>
+
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+
+    var content = document.createElement('div');
+    content.innerHTML = `
+        <div class="sample-content">
+            <div class="sample-content-main">
+                <div class="sample-video-wrapper" id="video-wrapper">
+                    <video preload="auto" autoplay></video>
+                </div>
+            </div>
+            <div class="sample-content-side">
+                <div class="sample-side-panel">
+                    <div class="sample-side-panel-header">Get Initial Media Settings For Audio</div>
+                    <div class="sample-side-panel-body">
+                        <label for="mediaSettings">return value of <code>getInitialMediaSettingsFor('audio')</code>:</label>
+                        <textarea class="form-control" id="mediaSettings"></textarea>
+                    </div>
+                </div>
+                <div class="sample-side-panel" style="margin-top: 1rem;">
+                    <div class="sample-side-panel-header">Get selected audio track</div>
+                    <div class="sample-side-panel-body">
+                        <label for="selectedTrack">return value of <code>getCurrentTrackFor('audio')</code>:</label>
+                        <textarea class="form-control" id="selectedTrack"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    initSamplePage({
+        title: 'Initial audio track with language and accessibility',
+        description: 'This example shows how an initial track is selected from content with multiple audio tracks based on preference settings. Desired media settings are sanitized by a default <code>schemeIdUri</code>, if not provided. Example requires support for Dolby Audio.',
+        category: 'Tracks and Capabilities',
+        codeExpanded: true,
+        layout: 'custom',
+        content: content,
+        onInit: (video, container, wrapper) => {
+            video = document.querySelector('video');
+            wrapper = document.querySelector('.sample-video-wrapper');
+            init(video, container, wrapper);
+        }
+    });
+</script>
+</body>
+</html>

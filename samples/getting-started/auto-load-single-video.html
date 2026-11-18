@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto load single video</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="code">
+    <video autoplay preload="none" controls="true">
+        <source src="https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd"
+                type="application/dash+xml"/>
+    </video>
+</div>
+
+<script type="module">
+    import { initSamplePage } from '../lib/sample-template.js';
+
+    initSamplePage({
+        title: 'Auto load single video',
+        description: 'The mpd source is specified within the child Source element of the video element. Note that the Source@type attribute must be set to "application/dash+xml" in order for it to be automatically used.',
+        category: 'Getting Started',
+        codeExpanded: true,
+        layout: 'custom',
+        showCodeOutput: true
+    });
+</script>
+</body>
+</html>

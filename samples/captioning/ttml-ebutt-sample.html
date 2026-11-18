@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTML EBU timed text tracks</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+</head>
+<body>
+
+<script class="code">
+    async function init(video, container, wrapper) {
+        var url = "https://rdmedia.bbc.co.uk/elephants_dream/1/client_manifest-all.mpd";
+
+        var player = dashjs.MediaPlayer().create();
+        player.initialize(video, url, true);
+        player.attachTTMLRenderingDiv(wrapper.querySelector('#ttml-rendering-div'));
+
+        await createControlBar(player, video, wrapper);
+    }
+</script>
+
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+
+    initSamplePage({
+        title: 'TTML EBU timed text tracks',
+        description: 'Shows content with TTML EBU timed text tracks.',
+        category: 'Subtitles and Captions',
+        codeExpanded: true,
+        ttmlRenderingDiv: true,
+        videoAttributes: { preload: 'auto', autoplay: '' },
+        onInit: (video, container, wrapper) => init(video, container, wrapper)
+    });
+</script>
+</body>
+</html>

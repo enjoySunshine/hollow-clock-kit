@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiperiod VoD</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+</head>
+<body>
+
+<script class="code">
+    async function init(video, wrapper) {
+        var player,
+            url = "https://dash.akamaized.net/dash264/TestCases/5a/nomor/1.mpd";
+
+        player = dashjs.MediaPlayer().create();
+        player.initialize(video, url, true);
+        await createControlBar(player, video, wrapper);
+    }
+</script>
+
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+
+    initSamplePage({
+        title: 'Multiperiod VoD',
+        description: 'Shows how dash.js handles streams with two periods. The second period starts at 4:10 minutes.',
+        category: 'Multi Period',
+        codeExpanded: true,
+        onInit: (video, container, wrapper) => init(video, wrapper)
+    });
+</script>
+</body>
+</html>

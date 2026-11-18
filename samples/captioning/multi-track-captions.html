@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-track captions</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+</head>
+<body>
+
+<script class="code">
+    var player;
+
+    async function init(video, container, wrapper) {
+        player = dashjs.MediaPlayer().create();
+        player.initialize(video);
+        player.attachTTMLRenderingDiv(wrapper.querySelector('#ttml-rendering-div'));
+        player.on('currentTrackChanged', function(e) {
+            if (e.newMediaInfo.type === 'text') {
+                setTimeout(showDomStorage, 0);
+            }
+        });
+
+        await createControlBar(player, video, wrapper);
+
+        document.getElementById("lastMediaSettingsCachingInfoEnabled").checked = player.getSettings().streaming.lastMediaSettingsCachingInfo.enabled;
+        showDomStorage();
+    }
+
+    function showDomStorage() {
+        document.getElementById("domStorage").innerHTML = localStorage.getItem('dashjs_text_settings');
+    }
+
+    function play() {
+        var url = "https://livesim2.dashif.org/vod/testpic_2s/multi_subs.mpd";
+        player.attachSource(url);
+        setTextDefaultEnabled();
+        setLang();
+        player.play();
+        showDomStorage();
+    }
+
+    function setTextDefaultEnabled() {
+        var checkbox = document.getElementById("textDefaultEnabled");
+        player.updateSettings({streaming: {text: {defaultEnabled: checkbox.checked}}});
+    }
+
+    function setLang() {
+        var lang = document.getElementById("textSettings").value;
+        var role = null;
+        if (lang) {
+            if (lang.indexOf('-') != -1) {
+                var values = lang.split('-');
+                lang = values[0];
+                role = values[1];
+            }
+            player.setInitialMediaSettingsFor('text', {
+                lang: lang,
+                role: role
+            });
+        }
+    }
+
+    function setLastMediaSettingsCachingInfoEnabled() {
+        var checkbox = document.getElementById("lastMediaSettingsCachingInfoEnabled");
+        player.updateSettings({
+            streaming: {
+                lastMediaSettingsCachingInfo: { enabled: checkbox.checked }
+            }
+        })
+    }
+
+    function clearDomStorage() {
+        localStorage.removeItem('dashjs_text_settings');
+        showDomStorage();
+    }
+</script>
+
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+
+    var content = document.createElement('div');
+    content.innerHTML = `
+        <div class="sample-content">
+            <div class="sample-content-main">
+                <div class="sample-video-wrapper" id="video-wrapper">
+                    <video preload="auto" autoplay></video>
+                    <div id="ttml-rendering-div" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;"></div>
+                </div>
+            </div>
+            <div class="sample-content-side">
+                <div class="sample-side-panel">
+                    <div class="sample-side-panel-header">Settings</div>
+                    <div class="sample-side-panel-body">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="textDefaultEnabled" onchange="setTextDefaultEnabled()" checked>
+                            <label class="form-check-label" for="textDefaultEnabled">
+                                textDefaultEnabled
+                            </label>
+                        </div>
+                        <div class="mt-2">
+                            <label class="form-check-label" for="textSettings">
+                                Initial settings language/role
+                            </label>
+                            <select class="form-select form-select-sm" onchange="setLang()" id="textSettings">
+                                <option value="">-- unset initial lang and role --</option>
+                                <option value="en-subtitle">eng - subtitles</option>
+                                <option value="en-caption">eng - captions</option>
+                                <option value="sv">swe - subtitles</option>
+                                <option value="qb">qbb - subtitles</option>
+                                <option value="no">nor - subtitles</option>
+                            </select>
+                        </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" id="lastMediaSettingsCachingInfoEnabled" onchange="setLastMediaSettingsCachingInfoEnabled()">
+                            <label class="form-check-label" for="lastMediaSettingsCachingInfoEnabled">
+                                streaming.lastMediaSettingsCachingInfo.enabled
+                            </label>
+                        </div>
+                        <div class="mt-3">
+                            <label>localStorage content:</label>
+                            <div id="domStorage"></div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-sm btn-danger" onclick="clearDomStorage()">Clear localStorage</button>
+                            <button type="button" id="loadButton" class="btn btn-sm btn-success" onclick="play(this)">Load stream</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    initSamplePage({
+        title: 'Multi-track captions',
+        description: 'Shows content with multiple timed text tracks. The current texttrack settings can be saved in the local storage to be reused on the next stream startup.',
+        category: 'Subtitles and Captions',
+        layout: 'custom',
+        content: content,
+        onInit: (video, container, wrapper) => {
+            video = document.querySelector('video');
+            wrapper = document.querySelector('.sample-video-wrapper');
+            init(video, container, wrapper);
+        }
+    });
+</script>
+</body>
+</html>

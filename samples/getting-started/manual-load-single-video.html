@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual load single video</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+</head>
+<body>
+
+<script class="code">
+    async function init(video, wrapper) {
+        var player,
+            url = 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd';
+
+        player = dashjs.MediaPlayer().create();
+        player.initialize(video, url, false);
+        await createControlBar(player, video, wrapper);
+    }
+</script>
+
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+
+    initSamplePage({
+        title: 'Manual load single video',
+        description: 'A sample showing how to load a single video. Autoplay is set to false.',
+        category: 'Getting Started',
+        codeExpanded: true,
+        onInit: (video, container, wrapper) => init(video, wrapper)
+    });
+</script>
+</body>
+</html>

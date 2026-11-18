@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple audio tracks with different codecs</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+</head>
+<body>
+
+<script class="code">
+    async function init(video, container, wrapper) {
+        var url = 'https://storage.googleapis.com/shaka-demo-assets/angel-one-widevine/dash.mpd';
+
+        var player = dashjs.MediaPlayer().create();
+        player.setProtectionData({
+            'com.widevine.alpha': {
+                serverURL: 'https://cwip-shaka-proxy.appspot.com/no_auth'
+            }
+        });
+        player.initialize(video, url, true);
+
+        await createControlBar(player, video, wrapper);
+    }
+</script>
+
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+
+    initSamplePage({
+        title: 'Multiple audio tracks with different codecs',
+        description: 'This example shows how content with multiple audio tracks with different codecs can be played back by the dash.js player. dash.js allows a switch of the audio track during playback.',
+        category: 'Tracks and Capabilities',
+        codeExpanded: true,
+        videoAttributes: { preload: 'auto', autoplay: '' },
+        onInit: (video, container, wrapper) => init(video, container, wrapper)
+    });
+</script>
+</body>
+</html>

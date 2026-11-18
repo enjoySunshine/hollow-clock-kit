@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initial audio track</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+</head>
+<body>
+
+<script class="code">
+    async function init(video, wrapper) {
+        var player,
+            url = 'https://media.axprod.net/TestVectors/v7-Clear/Manifest_1080p.mpd';
+        var attachSourceButton = document.getElementById('attach_button');
+
+        player = dashjs.MediaPlayer().create();
+        player.updateSettings({
+            debug: {
+                logLevel: 5
+            }
+        })
+        player.initialize(video, null, false);
+        await createControlBar(player, video, wrapper);
+
+        attachSourceButton.onclick = function () {
+            player.attachSource(url);
+            player.setInitialMediaSettingsFor('audio', {
+                lang: 'et-ET'
+            })
+            player.play();
+        }
+    }
+</script>
+
+<script type="module">
+    import {initSamplePage, createControlBar} from '../lib/sample-template.js';
+
+    var content = document.createElement('div');
+    content.innerHTML = `
+        <div class="sample-content">
+            <div class="sample-content-main">
+                <div class="sample-video-wrapper" id="video-wrapper">
+                    <video></video>
+                </div>
+                <div style="margin-top: 0.5rem;">
+                    <button class="btn btn-sm btn-primary" id="attach_button">(Re)attach source</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    initSamplePage({
+        title: 'Initial audio track',
+        description: 'This example illustrates how to select a default audio language for playback.',
+        category: 'Tracks and Capabilities',
+        codeExpanded: true,
+        httpWarning: true,
+        layout: 'custom',
+        content: content,
+        onInit: async () => {
+            var video = document.querySelector('video');
+            var wrapper = document.getElementById('video-wrapper');
+            await init(video, wrapper);
+        }
+    });
+</script>
+</body>
+</html>

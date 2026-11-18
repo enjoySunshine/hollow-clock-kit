@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flexible insertion of URL parameters</title>
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+
+    <style>
+        #trace {
+            height: 500px;
+            overflow-y: auto;
+        }
+
+        #manifestContent {
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sample-content-custom">
+    <div class="row mt-2">
+        <div class="col-md-6">
+            <label for="manifestSelect">Manifest:</label>
+            <input id="manifestSelect" value="https://livesim.dashif.org/livesim2/annexI_dashjs=rocks/testpic_6s/Manifest.mpd?dashjs=rocks" type="text" class="form-control">
+            <label for="queryParamsInput" class="mt-2">Add Query Parameters to Manifest Request:</label>
+            <input id="queryParamsInput" type="text" class="form-control" value="token=1234">
+            <button id="loadButton" class="btn btn-primary mt-2">Load</button>
+            <div class="sample-video-wrapper mt-3"><video></video></div>
+        </div>
+        <div class="col-md-6">
+            <div class="sample-metrics">
+                <div class="sample-metrics-header">Requests Made by Player</div>
+                <div class="sample-metrics-body">
+                    <div class="sample-log" id="trace"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-12">
+            <div class="sample-metrics">
+                <div class="sample-metrics-header">Manifest Content</div>
+                <div class="sample-metrics-body">
+                    <pre id="manifestContent" class="sample-log mb-0"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script class="code">
+    var player;
+
+    async function init() {
+        var video = document.querySelector('video');
+        var manifestSelect = document.getElementById('manifestSelect');
+        var queryParamsInput = document.getElementById('queryParamsInput');
+        var loadButton = document.getElementById('loadButton');
+
+        player = dashjs.MediaPlayer().create();
+        player.initialize(video, null, false);
+        await createControlBar(player, video, document.querySelector('.sample-video-wrapper'));
+
+        player.on(dashjs.MediaPlayer.events.MANIFEST_LOADED, function (event) {
+            var manifestUrl = getManifestUrlWithQueryParams(manifestSelect.value, queryParamsInput.value);
+            fetchManifest(manifestUrl);
+        });
+
+        player.on(dashjs.MediaPlayer.events.FRAGMENT_LOADING_COMPLETED, function (event) {
+            var url = event.request.url;
+            var formattedUrl = highlightQueryParams(url);
+            log(formattedUrl);
+        });
+
+        loadButton.addEventListener('click', function () {
+            updateManifestSource();
+        });
+    }
+
+    function updateManifestSource() {
+        var manifestSelect = document.getElementById('manifestSelect');
+        var queryParamsInput = document.getElementById('queryParamsInput');
+        var url = getManifestUrlWithQueryParams(manifestSelect.value, queryParamsInput.value);
+        player.attachSource(url);
+        clearLog();
+        clearManifestContent();
+    }
+
+    function getManifestUrlWithQueryParams(url, queryParams) {
+        if (queryParams) {
+            var separator = url.includes('?') ? '&' : '?';
+            return url + separator + encodeURI(queryParams);
+        }
+        return url;
+    }
+
+    function highlightQueryParams(url) {
+        var parts = url.split('?');
+        if (parts.length > 1) {
+            var baseUrl = parts[0];
+            var queryParams = parts[1];
+            return baseUrl + '?<strong>' + queryParams + '</strong>';
+        } else {
+            return url;
+        }
+    }
+
+    function fetchManifest(url) {
+        fetch(url)
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.text();
+            })
+            .then(function (data) {
+                displayManifestContent(data);
+            })
+            .catch(function (error) {
+                console.error('There has been a problem with your fetch operation:', error);
+            });
+    }
+
+    function displayManifestContent(content) {
+        var manifestPanel = document.getElementById('manifestContent');
+        manifestPanel.textContent = content;
+    }
+
+    function log(msg) {
+        var tracePanel = document.getElementById('trace');
+        var logEntry = document.createElement('div');
+        logEntry.innerHTML = msg;
+        tracePanel.appendChild(logEntry);
+        tracePanel.scrollTop = tracePanel.scrollHeight;
+        console.log(msg);
+    }
+
+    function clearLog() {
+        var tracePanel = document.getElementById('trace');
+        tracePanel.innerHTML = '';
+    }
+
+    function clearManifestContent() {
+        var manifestPanel = document.getElementById('manifestContent');
+        manifestPanel.textContent = '';
+    }
+</script>
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+    initSamplePage({
+        title: 'Flexible insertion of URL parameters',
+        description: 'This sample demonstrates the <strong>Flexible Insertion of URL Parameters</strong> in dash.js.',
+        category: 'Network',
+        layout: 'custom',
+        onInit: () => init()
+    });
+</script>
+</body>
+</html>

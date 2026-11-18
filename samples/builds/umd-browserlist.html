@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UMD browserslist</title>
+    <script class="code" src="../../dist/modern/umd/dash.all.min.js"></script>
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+</head>
+<body>
+<div class="code">
+    <video autoplay preload="none" controls="true">
+        <source src="https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd"
+                type="application/dash+xml"/>
+    </video>
+</div>
+<script type="module">
+    import { initSamplePage } from '../lib/sample-template.js';
+    initSamplePage({
+        title: 'UMD browserslist',
+        description: 'This sample page uses the modern UMD build that is targeting a "browserlist" with the value set to "default". There are no polyfills added to the build.',
+        category: 'Builds',
+        codeExpanded: true,
+        layout: 'custom'
+    });
+</script>
+</body>
+</html>

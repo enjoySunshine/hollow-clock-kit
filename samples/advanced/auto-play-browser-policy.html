@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autoplay browser policy</title>
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+</head>
+<body>
+<script class="code">
+    async function init(video, wrapper) {
+        var player,
+            url = 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd';
+
+        player = dashjs.MediaPlayer().create();
+
+        /* restart playback in muted mode when auto playback was not allowed by the browser */
+        player.on(dashjs.MediaPlayer.events.PLAYBACK_NOT_ALLOWED, function (data) {
+            console.log('Playback did not start due to auto play restrictions. Muting audio and reloading');
+            video.muted = true;
+            player.initialize(video, url, true);
+        });
+
+        player.initialize(video, url, true);
+        await createControlBar(player, video, wrapper);
+    }
+</script>
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+    initSamplePage({
+        title: 'Autoplay browser policy',
+        description: 'This sample shows how to deal with autoplay browsers policy. It uses an event listener to detect when auto playback is interrupted by the browser and how to recover from this situation muting audio.',
+        category: 'Loading and Startup',
+        codeExpanded: true,
+        onInit: (video, container, wrapper) => init(video, wrapper)
+    });
+</script>
+</body>
+</html>

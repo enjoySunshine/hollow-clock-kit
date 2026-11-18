@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network interceptors</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+</head>
+<body>
+
+<script class="code">
+    // CmcdObjectType.VIDEO from the Common Media Library is the string 'v'.
+    var CMCD_OBJECT_TYPE_VIDEO = 'v';
+
+    async function init(video, wrapper) {
+        var player,
+            url = 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd';
+
+        player = dashjs.MediaPlayer().create();
+        player.initialize(video, url, true);
+
+        // Add a request interceptor to override the request URL for video segment requests only.
+        addRequestInterceptor(player);
+
+        // Add a response interceptor to add a custom response header.
+        addResponseInterceptor(player);
+
+        await createControlBar(player, video, wrapper);
+    }
+
+    function addRequestInterceptor(player) {
+        const interceptor = function (request) {
+            if (request.cmcd && request.cmcd.ot === CMCD_OBJECT_TYPE_VIDEO) {
+                request.url += (request.url.includes('?') ? '&' : '?') + 'request-interceptor=true';
+                console.log(request.url);
+            }
+            return Promise.resolve(request);
+        };
+        player.addRequestInterceptor(interceptor);
+    }
+
+    function addResponseInterceptor(player) {
+        const interceptor = function (response) {
+            if (!response.headers) {
+                response.headers = {};
+            }
+            response.headers['response-interceptor'] = 'true';
+            return Promise.resolve(response);
+        };
+        player.addResponseInterceptor(interceptor);
+    }
+</script>
+
+<script type="module">
+    import {initSamplePage, createControlBar} from '../lib/sample-template.js';
+
+    initSamplePage({
+        title: 'Network interceptors',
+        description: 'Shows how to apply network request and response interceptors based on the Common Media Library API. The request interceptor appends a query parameter to video segment requests, and the response interceptor adds a custom header to every response.',
+        category: 'Network',
+        onInit: (video, container, wrapper) => init(video, wrapper)
+    });
+</script>
+</body>
+</html>

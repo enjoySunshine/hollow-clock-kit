@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom initial track selection</title>
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+</head>
+<body>
+<script class="code">
+    async function init(video, wrapper) {
+
+        var player,
+            url = 'https://storage.googleapis.com/shaka-demo-assets/angel-one-widevine/dash.mpd';
+
+        var getTrackWithLowestBitrate = function (trackArr) {
+            let min = Infinity;
+            let result = [];
+            let tmp;
+
+            trackArr.forEach(function (track) {
+                tmp = Math.min.apply(Math, track.bitrateList.map(function (obj) {
+                    return obj.bandwidth;
+                }));
+
+                if (tmp < min) {
+                    min = tmp;
+                    result = [track];
+                }
+            });
+
+            return result;
+        }
+
+        player = dashjs.MediaPlayer().create();
+
+        player.setProtectionData({
+            'com.widevine.alpha': {
+                'serverURL': 'https://cwip-shaka-proxy.appspot.com/no_auth'
+            }
+        })
+        player.initialize(video, url, true);
+        player.setCustomInitialTrackSelectionFunction(getTrackWithLowestBitrate);
+        await createControlBar(player, video, wrapper);
+
+    }
+</script>
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+    initSamplePage({
+        title: 'Custom initial track selection',
+        description: 'This sample shows how to define your own initial track selection function. This can be useful to select a specific AdaptationSet with a specific, desired codec.',
+        category: 'Tracks and Capabilities',
+        codeExpanded: true,
+        onInit: (video, container, wrapper) => init(video, wrapper)
+    });
+</script>
+</body>
+</html>

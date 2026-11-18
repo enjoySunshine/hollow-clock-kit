@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changing the default ABR algorithm</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+</head>
+<body>
+
+<script class="code">
+    async function init(video, wrapper) {
+        var player,
+            url = "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd";
+
+        player = dashjs.MediaPlayer().create();
+
+        player.updateSettings({
+            streaming: {
+                abr: {
+                    rules: {
+                        throughputRule: {
+                            active: true
+                        },
+                        bolaRule: {
+                            active: false
+                        },
+                        insufficientBufferRule: {
+                            active: true
+                        },
+                        switchHistoryRule: {
+                            active: false
+                        },
+                        droppedFramesRule: {
+                            active: false
+                        },
+                        abandonRequestsRule: {
+                            active: false
+                        }
+                    }
+                }
+            }
+        });
+
+        player.initialize(video, url, true);
+        await createControlBar(player, video, wrapper);
+    }
+</script>
+
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+
+    initSamplePage({
+        title: 'Changing the default ABR algorithm',
+        description: 'Shows how to define the target ABR rules in dash.js. In this demo we enable the throughput based ABR decision logic and the InsufficientBufferRule. <b>Note:</b> If both BOLA and ThroughputRule are enabled, dash.js automatically switches to a <i>dynamic mode</i>: starting with ThroughputRule and switching to BOLA once the buffer target is reached.',
+        category: 'ABR',
+        codeExpanded: true,
+        onInit: (video, container, wrapper) => init(video, wrapper)
+    });
+</script>
+</body>
+</html>

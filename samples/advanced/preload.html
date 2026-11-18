@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preload content</title>
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+
+</head>
+<body>
+
+<div class="sample-content-custom">
+    <div class="row mt-2">
+        <div class="col-md-8">
+            <div class="sample-video-wrapper" id="video-wrapper">
+                <video id="video-element"></video>
+                <div id="ttml-rendering-div" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <button onclick="attachVideoPlayer()">Attach View</button>
+        </div>
+    </div>
+</div>
+
+<script class="code">
+    var video,
+        player,
+        ttmlRenderingDiv;
+
+    function init() {
+        var url = 'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd';
+
+        player = dashjs.MediaPlayer().create();
+        player.initialize(null, url, true);
+        player.updateSettings({
+            debug: {logLevel: 5},
+            streaming: {cacheInitSegments: true}
+        });
+        player.preload();
+    }
+
+    async function attachVideoPlayer() {
+        if (!video) {
+            video = document.getElementById('video-element')
+        }
+
+        player.attachView(video);
+        ttmlRenderingDiv = document.querySelector('#ttml-rendering-div');
+        player.attachTTMLRenderingDiv(ttmlRenderingDiv);
+        await createControlBar(player, video, document.getElementById('video-wrapper'));
+    }
+</script>
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+    initSamplePage({
+        title: 'Preload content',
+        description: 'This example shows how to use preload feature of dash.js, which allows to initialize streaming and start downloading the content before the player is attached to an HTML5 video element. This feature can be used to optimize content-insertion on platforms which provide only a single decoder. When this page is loaded, dash.js downloads media segments into a virtual buffer. Once the "Attach View" button is clicked, a video element is attached to dash.js and the downloaded data will be appended to the newly created Source Buffers. Note that for this feature to work "cacheInitSegments" must be activated.',
+        category: 'Loading and Startup',
+        codeExpanded: true,
+        layout: 'custom',
+        onInit: () => init()
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live delay comparison custom manifest</title>
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+
+    <style>
+        #fragmentsEntry, #secondsEntry {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sample-content-custom">
+    <div class="row mt-2">
+        <div class="col-md-7">
+            <div class="input-group mb-3">
+                <span class="input-group-text" id="basic-addon1">Manifest URL</span>
+                <input type="text" id="manifest" class="form-control" placeholder="MPD URL"
+                       value="https://livesim2.dashif.org/livesim2/testpic_2s/Manifest.mpd" aria-label="Username"
+                       aria-describedby="basic-addon1">
+                <button type="button" id="loadButton" class="btn btn-success" onclick="load(this)">Load stream
+                </button>
+            </div>
+            <div class="sample-video-wrapper"><video></video></div>
+
+        </div>
+        <div class="col-md-5">
+            <div class="sample-side-panel">
+                <div class="sample-side-panel-header">Settings</div>
+                <div class="sample-side-panel-body">
+                    <div class="form-check">
+                        <input class="form-check-input" onclick="delaySelect(this)" value="default" type="radio"
+                               name="delay" id="default" checked>
+                        <label class="form-check-label" for="default">
+                            Default
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" onclick="delaySelect(this)" value="segments" type="radio"
+                               name="delay" id="segments">
+                        <label class="form-check-label" for="segments">
+                            Fragment Count:
+                        </label>
+                        <div id="fragmentsEntry">
+                            <input id="delayInFragments" type="number" min="0" placeholder="e.g. 4">
+                        </div>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" onclick="delaySelect(this)" value="time" type="radio"
+                               name="delay" id="time">
+                        <label class="form-check-label" for="time">
+                            Time in seconds:
+                        </label>
+                        <div id="secondsEntry">
+                            <input id="delayInSeconds" type="number" min="0" placeholder="e.g. 8">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="sample-metrics mt-3">
+                <div class="sample-metrics-header">Wall Clock reference time</div>
+                <div class="sample-metrics-body">
+                    <div class="sample-clock">
+                        <span id="min"> </span><span id="sec"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="sample-metrics mt-3">
+                <div class="sample-metrics-header">Debug information</div>
+                <div class="sample-metrics-body">
+                    <div class="metric-row">
+                        <span class="metric-label">Seconds behind live</span>
+                        <span class="metric-value" id="videoDelay">-</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Video Buffer</span>
+                        <span class="metric-value" id="videoBuffer">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script class="code">
+    var player, firstLoad = true, controlbar;
+
+    function init() {
+        setInterval(function () {
+            if (player && player.isReady()) {
+                var d = new Date();
+                var seconds = d.getSeconds();
+                document.querySelector('#sec').innerHTML = (seconds < 10 ? '0' : '') + seconds;
+                var minutes = d.getMinutes();
+                document.querySelector('#min').innerHTML = (minutes < 10 ? '0' : '') + minutes + ':';
+                document.querySelector('#videoDelay').innerHTML = Math.round((d.getTime() / 1000) - Number(player.timeAsUTC()));
+                document.querySelector('#videoBuffer').innerHTML = player.getBufferLength() + 's';
+            }
+        }, 1000);
+    }
+
+    async function load(button) {
+        if (!firstLoad) {
+            if (controlbar) { controlbar.destroy(); controlbar = null; }
+            player.reset();
+        }
+        firstLoad = false;
+        var url = document.getElementById('manifest').value;
+        player = dashjs.MediaPlayer().create();
+        player.updateSettings({ 'debug': { 'logLevel': dashjs.Debug.LOG_LEVEL_NONE } });
+
+        switch (document.querySelector('input[name="delay"]:checked').value) {
+            case 'segments':
+                player.updateSettings({
+                    'streaming':
+                        {
+                            'delay': {
+                                'liveDelayFragmentCount': document.querySelector('#delayInFragments').value
+                            }
+
+                        }
+                });
+
+                break;
+            case 'time':
+                player.updateSettings({
+                    'streaming':
+                        {
+                            'delay': {
+                                'liveDelay': document.querySelector('#delayInSeconds').value
+                            }
+                        }
+                });
+                break;
+        }
+        var video = document.querySelector('video');
+        player.initialize(video, url, true);
+        controlbar = await createControlBar(player, video, document.querySelector('.sample-video-wrapper'));
+    }
+
+    function delaySelect(obj) {
+        switch (obj.value) {
+            case 'default':
+                document.querySelector('#fragmentsEntry').style.display = 'none';
+                document.querySelector('#secondsEntry').style.display = 'none';
+                break;
+            case 'segments':
+                document.querySelector('#fragmentsEntry').style.display = 'block';
+                document.querySelector('#secondsEntry').style.display = 'none';
+                break;
+            case 'time':
+                document.querySelector('#fragmentsEntry').style.display = 'none';
+                document.querySelector('#secondsEntry').style.display = 'block';
+                break;
+        }
+    }
+</script>
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+    initSamplePage({
+        title: 'Live delay comparison custom manifest',
+        description: 'This sample allows you to explore the two settings that control live delay - <b>streaming.delay.liveDelay</b> and <b>streaming.delay.liveDelayFragmentCount</b>. The first takes the desired delay in seconds. The second takes the delay in terms of fragment count. If you set both, liveDelay takes priority. If you set neither, the default delay of 4 segment durations is used. Note that using either setting will not result in the offset exactly matching the requested value. The final delay depends on the time to fill the source buffers and the amount of data required to begin decoding.',
+        category: 'Live',
+        layout: 'custom',
+        onInit: () => init()
+    });
+</script>
+</body>
+</html>

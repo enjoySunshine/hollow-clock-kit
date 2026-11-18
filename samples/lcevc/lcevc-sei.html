@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LCEVC using SEI carriage</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <!-- MPEG-5 LCEVC Decoder Library -->
+    <script src="https://unpkg.com/lcevc_dec.js@latest/dist/lcevc_dec.min.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+
+    <style>
+        video {
+            display: none !important; /* Enhanced frames are rendered on a HTML5CanvasElement.*/
+        }
+    </style>
+</head>
+<body>
+
+<div class="sample-content-custom">
+    <div class="row mt-2">
+        <div class="col-md-8">
+            <div class="sample-video-wrapper" id="video-wrapper">
+                <video preload="auto" autoplay></video>
+                <canvas></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script class="code">
+    /**
+     * MPEG-5 LCEVC Integration for dash.js player.
+     *
+     * These are the changes needed for passing the correct data to lcevc_dec.js.
+    */
+    dashjs.Extensions = {
+        ...dashjs.Extensions,
+        /**
+         * Attaches LCEVC functionality and methods to the provided dash.js player instance.
+         *
+         * @param {object} player the dash.js player instance to attach LCEVC
+         */
+        useLcevc: function useLcevc(player) {
+            if (!player) {
+                throw new TypeError('The provided dash.js player instance was null or undefined.');
+            }
+            const { LCEVCdec } = window;
+            if (!LCEVCdec) {
+                throw new TypeError('LCEVC Decoder Libraries could not be loaded.');
+            }
+
+            player.attachLcevc = function attachLcevc(media, canvas, LCEVCdecConfig) {
+                player.LCEVCdec = new LCEVCdec.LCEVCdec(
+                    media,
+                    canvas,
+                    LCEVCdecConfig
+                );
+            };
+            /* Let the LCEVC Decoder Library make the decision as to when to switch, based on the currently rendered frame.
+                If disabled, the player needs to signal LCEVC when there is a render change after an ABR switch happens.
+            */
+            const ENABLE_AUTO_RENDER_MODE = 1;
+
+            /* Intercept source buffers and pass video data to LCEVC */
+            player.on(dashjs.MediaPlayer.events.FRAGMENT_LOADING_COMPLETED, (event) => {
+                if (player.LCEVCdec && event.mediaType === 'video') {
+                    player.LCEVCdec.appendBuffer(event.response, 'video', event.request.representation.index);
+                    player.LCEVCdec.setLevelSwitching(event.request.representation.index, ENABLE_AUTO_RENDER_MODE);
+                }
+            });
+
+        }
+    };
+    function init() {
+        var video,
+            canvas,
+            player,
+            url = 'https://d3mfda3gpj3dw1.cloudfront.net/vn9s0p86SVbJorX6/master.mpd';
+
+        video = document.querySelector('video');
+        canvas = document.querySelector('canvas');
+        player = dashjs.MediaPlayer().create();
+
+        /* Configuration for LCEVC Decoder */
+        const LCEVCdecConfig = {};
+        LCEVCdec.ready.then(async () => {
+            /* Attach LCEVC to the dash.js player instance */
+            dashjs.Extensions.useLcevc(player);
+            player.attachLcevc(video, canvas, LCEVCdecConfig);
+            player.initialize(video, url, false);
+            await createControlBar(player, video, document.getElementById('video-wrapper'));
+        });
+    }
+</script>
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+    initSamplePage({
+        title: 'LCEVC using SEI carriage',
+        description: 'This example illustrates how MPEG-5 LCEVC-enhanced streams can be decoded in dash.js. In this implementation, enhancements are carried as Supplemental Enhancement Information within the same track as the base video. The base frames are decoded by the HTML5 Video Tag, with the LCEVC Decoder libraries processing the enhancement and rendering it to an HTML5 Canvas element. This example is a debug test stream, which will show moving squares when the LCEVC enhancement is being decoded and displayed successfully.',
+        category: 'Codecs',
+        layout: 'custom',
+        onInit: () => init()
+    });
+</script>
+</body>
+</html>

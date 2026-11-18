@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caption event handling</title>
+
+    <script src="../../contrib/videojs-vtt.js/vtt.min.js"></script>
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+</head>
+<body>
+
+<script class="code">
+    async function init(video, container, wrapper) {
+        var url = "https://dash.akamaized.net/akamai/test/caption_test/ElephantsDream/elephants_dream_480p_heaac5_1_https.mpd";
+
+        var player = dashjs.MediaPlayer().create();
+        player.updateSettings({
+            streaming: {
+                text: {
+                    dispatchForManualRendering: true
+                }
+            }
+        })
+        player.initialize(video, url, true);
+
+        player.on("playbackPaused", function (e) {
+            console.log("playbackPaused");
+        });
+        player.on("cueEnter", function (e) {
+            console.log("cueEnter", e);
+            const subtitle = document.createElement("p")
+            subtitle.setAttribute("id", "subtitle-" + e.cueID)
+            subtitle.innerHTML = e.text;
+            document.getElementById("subtitles").appendChild(subtitle);
+        });
+        player.on("cueExit", function (e) {
+            console.log("cueExit ", e);
+            document.getElementById("subtitle-" + e.cueID).remove();
+        });
+
+        await createControlBar(player, video, wrapper);
+    }
+</script>
+
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+
+    var content = document.createElement('div');
+    content.innerHTML = `
+        <div class="sample-content">
+            <div class="sample-content-main">
+                <div class="sample-video-wrapper" id="video-wrapper">
+                    <video preload="auto" autoplay></video>
+                </div>
+            </div>
+            <div class="sample-content-side">
+                <div class="sample-side-panel">
+                    <div class="sample-side-panel-header">Current Subtitle</div>
+                    <div class="sample-side-panel-body">
+                        <div id="subtitles"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    initSamplePage({
+        title: 'Caption event handling',
+        description: 'Shows how to consume subtitle events raised by dash.js. This way you can render the subtitles yourself.',
+        category: 'Subtitles and Captions',
+        codeExpanded: true,
+        layout: 'custom',
+        content: content,
+        onInit: (video, container, wrapper) => {
+            video = document.querySelector('video');
+            wrapper = document.querySelector('.sample-video-wrapper');
+            init(video, container, wrapper);
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto load single video src</title>
+
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="code">
+    <video data-dashjs-player autoplay
+           src="https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd" controls="true"></video>
+</div>
+
+<script type="module">
+    import { initSamplePage } from '../lib/sample-template.js';
+
+    initSamplePage({
+        title: 'Auto load single video src',
+        description: 'The simplest means of using a dash.js player in a web page. The MPD source is specified within the @src attribute of the video element. The "auto-load" refers to the fact that this page calls the dashjs.MediaPlayerFactory.createAll() method on load in order to automatically convert every video element carrying the data-dashjs-player attribute into a functioning DASH player.',
+        category: 'Getting Started',
+        codeExpanded: true,
+        layout: 'custom',
+        showCodeOutput: true
+    });
+</script>
+</body>
+</html>

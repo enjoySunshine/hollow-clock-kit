@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPD anchors</title>
+    <script src="../../dist/modern/umd/dash.all.debug.js"></script>
+    <link href="../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../lib/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../lib/sample.css" rel="stylesheet">
+    <link href="../../contrib/controlbar/controlbar.css" rel="stylesheet">
+</head>
+<body>
+<script class="code">
+    async function init(video, wrapper) {
+
+        var player,
+            url = "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd#t=60";
+
+        player = dashjs.MediaPlayer().create();
+
+        player.initialize(video, url, true);
+        await createControlBar(player, video, wrapper);
+    }
+</script>
+<script type="module">
+    import { initSamplePage, createControlBar } from '../lib/sample-template.js';
+    initSamplePage({
+        title: 'MPD anchors',
+        description: 'This sample shows how to use MPD anchors to start a presentation at a given time. In this case a "#t=60" anchor is added to the MPD url and playback starts at 60 seconds.',
+        category: 'Loading and Startup',
+        codeExpanded: true,
+        onInit: (video, container, wrapper) => init(video, wrapper)
+    });
+</script>
+</body>
+</html>
