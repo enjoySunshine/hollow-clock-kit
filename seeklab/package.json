@@ -1,0 +1,17 @@
+{
+  "name": "seeklab",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "SegmentTimeline seek lab: flattened binary-search timeline replacing the per-seek linear _iterateSegments walk, with a preview page and Node CLI sharing one engine.",
+  "scripts": {
+    "test": "node test/uri-template.test.mjs && node test/verify.mjs",
+    "serve": "node tools/serve.mjs",
+    "seek": "node tools/seek.mjs",
+    "measure": "node tools/seek.mjs measure",
+    "parity": "node tools/seek.mjs parity"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
